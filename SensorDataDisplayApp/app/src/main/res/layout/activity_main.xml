@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#F8F9FA">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sensor Monitor"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="40dp"
+        android:textColor="#212529"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Accelerometer (m/s²)"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#495057"/>
+
+    <TextView
+        android:id="@+id/accelValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Waiting for data..."
+        android:textSize="16sp"
+        android:layout_marginBottom="24dp"
+        android:textColor="#000000"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ambient Light (lux)"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#495057"/>
+
+    <TextView
+        android:id="@+id/lightValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Waiting for data..."
+        android:textSize="16sp"
+        android:layout_marginBottom="24dp"
+        android:textColor="#000000"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Proximity (cm)"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#495057"/>
+
+    <TextView
+        android:id="@+id/proxValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Waiting for data..."
+        android:textSize="16sp"
+        android:textColor="#000000"/>
+
+</LinearLayout>
