@@ -28,8 +28,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnPlay"
@@ -49,8 +49,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnStop"
@@ -71,14 +71,25 @@
         android:id="@+id/editUrl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Video URL here"
         android:layout_marginTop="16dp"
-        android:inputType="textUri"/>
+        android:hint="Enter Video URL"
+        android:inputType="textUri" />
+
+    <TextView
+        android:id="@+id/txtAudioStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="Status: Ready"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
     <VideoView
         android:id="@+id/videoView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="16dp" />
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1" />
 
 </LinearLayout>

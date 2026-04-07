@@ -1,14 +1,14 @@
 package com.darshita.myapplication;
 
-
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.VideoView;
+import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,16 +16,17 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     private VideoView videoView;
-    private MediaPlayer mediaPlayer;
     private EditText editUrl;
+    private TextView txtAudioStatus;
     private boolean isVideoMode = false;
+    private AudioPlayer audioPlayer;
 
     private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Uri audioUri = result.getData().getData();
-                    setupAudio(audioUri);
+                    Uri uri = result.getData().getData();
+                    if (uri != null) setupAudio(uri);
                 }
             }
     );
@@ -37,69 +38,83 @@ public class MainActivity extends AppCompatActivity {
 
         videoView = findViewById(R.id.videoView);
         editUrl = findViewById(R.id.editUrl);
+        txtAudioStatus = findViewById(R.id.txtAudioStatus);
 
-        Button btnOpenFile = findViewById(R.id.btnOpenFile);
-        Button btnOpenUrl = findViewById(R.id.btnOpenUrl);
-        Button btnPlay = findViewById(R.id.btnPlay);
-        Button btnPause = findViewById(R.id.btnPause);
-        Button btnStop = findViewById(R.id.btnStop);
-        Button btnRestart = findViewById(R.id.btnRestart);
+        audioPlayer = new AudioPlayer(this);
+        audioPlayer.setOnPlaybackStateChangeListener(new AudioPlayer.OnPlaybackStateChangeListener() {
+            @Override
+            public void onPrepared() {
+                updateAudioStatus("Ready");
+            }
 
-        btnOpenFile.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("audio/*");
-            filePickerLauncher.launch(intent);
-        });
+            @Override
+            public void onError(String error) {
+                updateAudioStatus("Error");
+                Toast.makeText(MainActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+            }
 
-        btnOpenUrl.setOnClickListener(v -> {
-            String url = editUrl.getText().toString().trim();
-            if (!url.isEmpty()) {
-                setupVideo(url);
+            @Override
+            public void onCompletion() {
+                updateAudioStatus("Completed");
             }
         });
 
-        btnPlay.setOnClickListener(v -> playMedia());
-        btnPause.setOnClickListener(v -> pauseMedia());
-        btnStop.setOnClickListener(v -> stopMedia());
-        btnRestart.setOnClickListener(v -> restartMedia());
+        findViewById(R.id.btnOpenFile).setOnClickListener(v -> openAudioFile());
+        findViewById(R.id.btnOpenUrl).setOnClickListener(v -> openVideoUrl());
+        findViewById(R.id.btnPlay).setOnClickListener(v -> playMedia());
+        findViewById(R.id.btnPause).setOnClickListener(v -> pauseMedia());
+        findViewById(R.id.btnStop).setOnClickListener(v -> stopMedia());
+        findViewById(R.id.btnRestart).setOnClickListener(v -> restartMedia());
+    }
+
+    private void openAudioFile() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("audio/*");
+        filePickerLauncher.launch(intent);
+    }
+
+    private void openVideoUrl() {
+        String url = editUrl.getText().toString().trim();
+        if (!url.isEmpty()) {
+            setupVideo(url);
+        } else {
+            Toast.makeText(this, "Enter URL", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupAudio(Uri uri) {
         releaseMediaPlayer();
         isVideoMode = false;
         videoView.stopPlayback();
-        videoView.setVisibility(View.GONE);
-
-        try {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource(this, uri);
-            mediaPlayer.prepare();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        videoView.setVisibility(android.view.View.GONE);
+        txtAudioStatus.setVisibility(android.view.View.VISIBLE);
+        updateAudioStatus("Loading...");
+        audioPlayer.prepareFromUri(uri);
     }
 
     private void setupVideo(String url) {
         releaseMediaPlayer();
         isVideoMode = true;
-        videoView.setVisibility(View.VISIBLE);
-        Uri uri = Uri.parse(url);
-        videoView.setVideoURI(uri);
+        txtAudioStatus.setVisibility(android.view.View.GONE);
+        videoView.setVisibility(android.view.View.VISIBLE);
+        videoView.setVideoURI(Uri.parse(url));
     }
 
     private void playMedia() {
         if (isVideoMode) {
             videoView.start();
-        } else if (mediaPlayer != null) {
-            mediaPlayer.start();
+        } else {
+            audioPlayer.play();
+            updateAudioStatus("Playing");
         }
     }
 
     private void pauseMedia() {
-        if (isVideoMode && videoView.isPlaying()) {
-            videoView.pause();
-        } else if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
+        if (isVideoMode) {
+            if (videoView.isPlaying()) videoView.pause();
+        } else {
+            audioPlayer.pause();
+            updateAudioStatus("Paused");
         }
     }
 
@@ -107,13 +122,9 @@ public class MainActivity extends AppCompatActivity {
         if (isVideoMode) {
             videoView.pause();
             videoView.seekTo(0);
-        } else if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            try {
-                mediaPlayer.prepare();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } else {
+            audioPlayer.stop();
+            updateAudioStatus("Stopped");
         }
     }
 
@@ -121,17 +132,18 @@ public class MainActivity extends AppCompatActivity {
         if (isVideoMode) {
             videoView.seekTo(0);
             videoView.start();
-        } else if (mediaPlayer != null) {
-            mediaPlayer.seekTo(0);
-            mediaPlayer.start();
+        } else {
+            audioPlayer.restart();
+            updateAudioStatus("Playing");
         }
     }
 
+    private void updateAudioStatus(String status) {
+        txtAudioStatus.setText("Status: " + status);
+    }
+
     private void releaseMediaPlayer() {
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
+        if (audioPlayer != null) audioPlayer.release();
     }
 
     @Override
